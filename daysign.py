@@ -4,13 +4,16 @@ import time
 import httpx
 import traceback
 import random
+import notify
+import random
+import time
 from contextlib import contextmanager
 from bs4 import BeautifulSoup
 from xml.etree import ElementTree as ET
 from flaresolverr import FlareSolverrHTTPClient
 
 SEHUATANG_HOST = 'www.sehuatang.net'
-DEFAULT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36'
 
 FID = 103  # 高清中文字幕
 
@@ -221,31 +224,10 @@ def preprocess_text(text) -> str:
     except:
         return text
 
-
-def push_notification(title: str, content: str) -> None:
-
-    def telegram_send_message(text: str, chat_id: str, token: str, silent: bool = False) -> None:
-        r = httpx.post(url=f'https://api.telegram.org/bot{token}/sendMessage',
-                       json={
-                           'chat_id': chat_id,
-                           'text': text,
-                           'disable_notification': silent,
-                           'disable_web_page_preview': True,
-                       })
-        r.raise_for_status()
-
-    try:
-        from notify import telegram_bot
-        telegram_bot(title, content)
-    except ImportError:
-        chat_id = os.getenv('TG_USER_ID')
-        bot_token = os.getenv('TG_BOT_TOKEN')
-        if chat_id and bot_token:
-            telegram_send_message(f'{title}\n\n{content}', chat_id, bot_token)
-
-
 def main():
-
+    wait_seconds = random.randint(0, 14400)
+    print(f"随机等待 {wait_seconds} 秒（约 {wait_seconds//3600} 小时）")
+    time.sleep(wait_seconds)
     raw_html = None
     cookies = {}
 
@@ -284,8 +266,8 @@ def main():
     # log to output
     print(message_text)
 
-    # telegram notify
-    push_notification(title, message_text)
+    # notify
+    notify.send(title, message_text)
 
 
 if __name__ == '__main__':
